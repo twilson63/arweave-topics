@@ -3,7 +3,7 @@ import * as assert from 'uvu/assert'
 import Arweave from 'arweave'
 import * as Topics from '../src/index.js'
 
-test('Hello World', async () => {
+test('topic tests', async () => {
   const arweave = Arweave.init({
     host: 'localhost',
     port: 1984,
@@ -22,12 +22,13 @@ test('Hello World', async () => {
   }
 
   const _topics = Topics.init(arweave)
-  const result = await _topics.subscribe('personal')
-  const result2 = await _topics.subscribe('public')
-  assert.ok(result.ok)
+  await _topics.subscribe('personal')
+  await _topics.subscribe('public')
+  await _topics.subscribe('dev')
+  await _topics.unsubscribe('public')
 
   const topics = await _topics.load(addr)
-  assert.equal(topics, ['public', 'personal'])
+  assert.equal(topics, ['dev', 'personal'])
 })
 
 test.run()

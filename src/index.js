@@ -39,7 +39,19 @@ export function init (arweave) {
       .toPromise()
   }
   async function unsubscribe(topic) {
-
+    return Async.of({data: topic})
+      .chain(createTx)
+      .map(tx => {
+        map(t => tx.addTag(t.name, t.value), addTags(topic))
+        return tx
+      })
+      .map(tx => {
+        tx.addTag('Status', 'inactive')
+        return tx
+      })
+      .chain(dispatch)
+      .map(() => ({ok: true}))
+      .toPromise()
   }
   return Object.freeze({
     load,
@@ -69,6 +81,9 @@ function getTopics(res) {
    pluck('value'), 
    flatten,
    map(filter(propEq('name', 'Topic'))),
+  //  nodeTags => {
+  //    const inactives = filter(and(propEq('')) nodeTags)
+  //  },
    pluck('tags'),
    pluck('node'),
    path(['data', 'transactions', 'edges'])
