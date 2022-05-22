@@ -1,8 +1,15 @@
 {
   "name": "arweave-topics",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "type": "module",
-  "main": "index.js",
+  "source": "src/index.js",
+  "exports": {
+    "require": "./dist/index.cjs",
+    "default": "./dist/index.modern.js"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.module.js",
+  "unpkg": "./dist/index.umd.js",
   "repository": "https://github.com/twilson63/arweave-topics.git",
   "author": "Tom Wilson <tom@hyper.io>",
   "license": "MIT",
@@ -12,6 +19,12 @@
     "ramda": "^0.28.0"
   },
   "devDependencies": {
+    "arlocal": "^1.1.37",
+    "microbundle": "^0.15.0",
     "uvu": "^0.5.3"
+  },
+  "scripts": {
+    "build": "microbundle",
+    "test": "uvu tests"
   }
 }

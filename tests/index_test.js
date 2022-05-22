@@ -1,9 +1,14 @@
 import { test } from 'uvu'
 import * as assert from 'uvu/assert'
 import Arweave from 'arweave'
-import * as Topics from '../src/index.js'
+import Topics from '../src/index.js'
+import ArLocal from 'arlocal';
 
 test('topic tests', async () => {
+  const arLocal = new ArLocal.default();
+  
+  await arLocal.start();
+
   const arweave = Arweave.init({
     host: 'localhost',
     port: 1984,
@@ -21,14 +26,17 @@ test('topic tests', async () => {
     }
   }
 
-  const _topics = Topics.init(arweave)
+  const _topics = Topics(arweave)
   await _topics.subscribe('personal')
   await _topics.subscribe('public')
   await _topics.subscribe('dev')
   await _topics.unsubscribe('public')
 
   const topics = await _topics.load(addr)
-  assert.equal(topics, ['dev', 'personal'])
+  
+  assert.equal(topics, ['personal','dev'])
+
+  await arLocal.stop();
 })
 
 test.run()

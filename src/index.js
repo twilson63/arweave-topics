@@ -1,9 +1,12 @@
 import crocks from 'crocks'
 import * as R from 'ramda'
 const { Async } = crocks
-const { compose, flatten, filter, map, path, pluck, prop, propEq} = R
+const { compose, equals, find, map, path, pluck, prop, propEq, reduce, reject, uniq} = R
 
-export function init (arweave) {
+/**
+ * @param {Arweave} arweave
+ */
+export default function (arweave) {
   const post =  Async.fromPromise(arweave.api.post.bind(arweave.api))
   const gql = query => post('graphql', { query })
   const createTx = Async.fromPromise(arweave.createTransaction.bind(arweave))
@@ -17,6 +20,10 @@ export function init (arweave) {
     await arweave.transactions.post(tx)
   })
 
+  /**
+   * @param {string} owner
+   * @returns {Promise<string[]>}
+   */
   function load(owner) {
     return Async.of(owner)
       // validate owner is string and proper length
@@ -27,6 +34,10 @@ export function init (arweave) {
       .toPromise()
   }
 
+  /**
+   * @param {string} topic
+   * @returns {Promise<Record>}
+   */
   async function subscribe(topic) {
     return Async.of({data: topic})
       .chain(createTx)
@@ -38,6 +49,11 @@ export function init (arweave) {
       .map(() => ({ok: true}))
       .toPromise()
   }
+
+  /**
+   * @param {string} topic
+   * @returns {Promise<Record>}
+   */
   async function unsubscribe(topic) {
     return Async.of({data: topic})
       .chain(createTx)
@@ -53,12 +69,15 @@ export function init (arweave) {
       .map(() => ({ok: true}))
       .toPromise()
   }
+
   return Object.freeze({
     load,
     subscribe,
     unsubscribe
   })
 }
+
+// PURE Functions
 
 function addTags(topic) {
   return [
@@ -78,16 +97,32 @@ function isSuccess(res) {
 
 function getTopics(res) {
   return compose(
-   pluck('value'), 
-   flatten,
-   map(filter(propEq('name', 'Topic'))),
-  //  nodeTags => {
-  //    const inactives = filter(and(propEq('')) nodeTags)
-  //  },
-   pluck('tags'),
+   uniq,
+   buildTopicList,
    pluck('node'),
    path(['data', 'transactions', 'edges'])
   )(res)
+}
+
+function buildTopicList(nodes) {
+  return reduce(
+    (acc, v) => {
+      const s = find(propEq('name', 'Status'), prop('tags', v))
+      const t = find(propEq('name', 'Topic'), prop('tags', v))
+      
+      if (propEq('value', 'inactive', s)) {
+        // remove topic from list
+        acc = reject(equals(prop('value', t)), acc)
+      } else {
+        // append topic to list
+        acc = [...acc, prop('value', t)]
+      }
+      
+      return acc
+    },
+    [],
+    nodes.reverse()
+  )
 }
 
 function buildGql(owner) {
