@@ -1,5 +1,13 @@
 # Arweave Topics
 
+Arweave Topics is a composable module for Arweave applications, it composes with
+the `arweave-js` library to provide developers a set of common operations to add
+the ability to manage topics for their application. Many social applications
+give users the ability to subscribe to specific topics or subjects of posts,
+images, etc. This Arweave Topics module gives the Arweave community a standard
+protocol so that dApps can share the topics users have subscribed to accross all
+applications.
+
 ## Table of Contents
 
 - [Install](#install)
